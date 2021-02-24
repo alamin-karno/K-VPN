@@ -1,11 +1,11 @@
-package com.lazycoder.cakevpn;
+package com.alaminkarno.kvpn;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.lazycoder.cakevpn.model.Server;
+import com.alaminkarno.kvpn.model.Server;
 
-import static com.lazycoder.cakevpn.Utils.getImgURL;
+import static com.alaminkarno.kvpn.Utils.getImgURL;
 
 public class SharedPreference {
 

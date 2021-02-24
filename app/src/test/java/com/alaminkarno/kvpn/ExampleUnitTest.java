@@ -1,4 +1,4 @@
-package com.lazycoder.cakevpn;
+package com.alaminkarno.kvpn;
 
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package com.lazycoder.cakevpn.model;
+package com.alaminkarno.kvpn.model;
 
 public class Server {
     private String country;

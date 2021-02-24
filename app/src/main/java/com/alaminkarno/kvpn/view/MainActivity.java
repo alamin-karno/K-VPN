@@ -1,4 +1,4 @@
-package com.lazycoder.cakevpn.view;
+package com.alaminkarno.kvpn.view;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,15 +14,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 
-import com.lazycoder.cakevpn.R;
-import com.lazycoder.cakevpn.adapter.ServerListRVAdapter;
-import com.lazycoder.cakevpn.interfaces.ChangeServer;
-import com.lazycoder.cakevpn.interfaces.NavItemClickListener;
-import com.lazycoder.cakevpn.model.Server;
+import com.alaminkarno.kvpn.R;
+import com.alaminkarno.kvpn.adapter.ServerListRVAdapter;
+import com.alaminkarno.kvpn.interfaces.ChangeServer;
+import com.alaminkarno.kvpn.interfaces.NavItemClickListener;
+import com.alaminkarno.kvpn.model.Server;
 
 import java.util.ArrayList;
 
-import com.lazycoder.cakevpn.Utils;
+import com.alaminkarno.kvpn.Utils;
 
 
 public class MainActivity extends AppCompatActivity implements NavItemClickListener {
