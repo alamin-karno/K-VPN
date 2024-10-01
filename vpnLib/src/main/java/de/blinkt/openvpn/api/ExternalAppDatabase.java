@@ -5,7 +5,8 @@
 
 package de.blinkt.openvpn.api;
 
-import android.app.Activity;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,8 +19,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import de.blinkt.openvpn.core.Preferences;
-
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class ExternalAppDatabase {
 
@@ -40,7 +39,7 @@ public class ExternalAppDatabase {
 
 	public Set<String> getExtAppList() {
 		SharedPreferences prefs = Preferences.getDefaultSharedPreferences(mContext);
-        return prefs.getStringSet(PREFERENCES_KEY, new HashSet<String>());
+        return prefs.getStringSet(PREFERENCES_KEY, new HashSet<>());
 	}
 	
 	public void addApp(String packagename)
@@ -62,7 +61,7 @@ public class ExternalAppDatabase {
 	}
 	
 	public void clearAllApiApps() {
-		saveExtAppList(new HashSet<String>());
+		saveExtAppList(new HashSet<>());
 	}
 
 	public void removeApp(String packagename) {
@@ -72,7 +71,7 @@ public class ExternalAppDatabase {
 	}
 
 
-	public String checkOpenVPNPermission(PackageManager pm) throws SecurityRemoteException {
+	public String checkOpenVPNPermission(PackageManager pm) {
 
 		for (String appPackage : getExtAppList()) {
 			ApplicationInfo app;

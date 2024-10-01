@@ -1,5 +1,8 @@
 package com.alaminkarno.kvpn.view;
 
+import android.os.Bundle;
+import android.widget.ImageButton;
+
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -10,31 +13,25 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageButton;
-
 import com.alaminkarno.kvpn.R;
+import com.alaminkarno.kvpn.Utils;
 import com.alaminkarno.kvpn.adapter.ServerListRVAdapter;
 import com.alaminkarno.kvpn.interfaces.ChangeServer;
 import com.alaminkarno.kvpn.interfaces.NavItemClickListener;
 import com.alaminkarno.kvpn.model.Server;
 
 import java.util.ArrayList;
-
-import com.alaminkarno.kvpn.Utils;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity implements NavItemClickListener {
-    private FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+    private final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
     private Fragment fragment;
     private RecyclerView serverListRv;
     private ArrayList<Server> serverLists;
-    private ServerListRVAdapter serverListRVAdapter;
     private DrawerLayout drawer;
     private ChangeServer changeServer;
 
-    public static final String TAG = "CakeVPN";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,26 +45,21 @@ public class MainActivity extends AppCompatActivity implements NavItemClickListe
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowTitleEnabled(false);
 
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
 
-        menuRight.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                closeDrawer();
-            }
-        });
+        menuRight.setOnClickListener(v -> closeDrawer());
 
         transaction.add(R.id.container, fragment);
         transaction.commit();
 
         // Server List recycler view initialize
         if (serverLists != null) {
-            serverListRVAdapter = new ServerListRVAdapter(serverLists, this);
+            ServerListRVAdapter serverListRVAdapter = new ServerListRVAdapter(serverLists, this);
             serverListRv.setAdapter(serverListRVAdapter);
         }
 
@@ -104,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements NavItemClickListe
     /**
      * Generate server array list
      */
-    private ArrayList getServerList() {
+    private ArrayList<Server> getServerList() {
 
         ArrayList<Server> servers = new ArrayList<>();
 

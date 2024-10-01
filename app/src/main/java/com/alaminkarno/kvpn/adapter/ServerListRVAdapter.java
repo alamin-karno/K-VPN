@@ -20,9 +20,9 @@ import java.util.ArrayList;
 
 public class ServerListRVAdapter extends RecyclerView.Adapter<ServerListRVAdapter.MyViewHolder> {
 
-    private ArrayList<Server> serverLists;
-    private Context mContext;
-    private NavItemClickListener listener;
+    private final ArrayList<Server> serverLists;
+    private final Context mContext;
+    private final NavItemClickListener listener;
 
     public ServerListRVAdapter(ArrayList<Server> serverLists, Context context) {
         this.serverLists = serverLists;
@@ -45,12 +45,7 @@ public class ServerListRVAdapter extends RecyclerView.Adapter<ServerListRVAdapte
                 .load(serverLists.get(position).getFlagUrl())
                 .into(holder.serverIcon);
 
-        holder.serverItemLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listener.clickedItem(position);
-            }
-        });
+        holder.serverItemLayout.setOnClickListener(v -> listener.clickedItem(position));
     }
 
     @Override
@@ -58,7 +53,7 @@ public class ServerListRVAdapter extends RecyclerView.Adapter<ServerListRVAdapte
         return serverLists.size();
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public static class MyViewHolder extends RecyclerView.ViewHolder {
         LinearLayout serverItemLayout;
         ImageView serverIcon;
         TextView serverCountry;

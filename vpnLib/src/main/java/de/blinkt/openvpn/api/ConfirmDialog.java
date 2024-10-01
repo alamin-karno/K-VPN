@@ -22,7 +22,6 @@ import android.app.AlertDialog.Builder;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnShowListener;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
@@ -56,7 +55,7 @@ public class ConfirmDialog extends Activity implements
     private AlertDialog mAlert;
 
     private IOpenVPNServiceInternal mService;
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
@@ -118,13 +117,9 @@ public class ConfirmDialog extends Activity implements
             mAlert = builder.create();
             mAlert.setCanceledOnTouchOutside(false);
 
-            mAlert.setOnShowListener(new OnShowListener() {
-                @Override
-                public void onShow(DialogInterface dialog) {
-                    mButton = mAlert.getButton(DialogInterface.BUTTON_POSITIVE);
-                    mButton.setEnabled(false);
-
-                }
+            mAlert.setOnShowListener(dialog -> {
+                mButton = mAlert.getButton(DialogInterface.BUTTON_POSITIVE);
+                mButton.setEnabled(false);
             });
 
             //setCloseOnTouchOutside(false);

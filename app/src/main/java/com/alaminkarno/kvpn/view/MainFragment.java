@@ -1,8 +1,9 @@
 package com.alaminkarno.kvpn.view;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.VpnService;
@@ -11,49 +12,48 @@ import android.os.RemoteException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.bumptech.glide.Glide;
 import com.alaminkarno.kvpn.CheckInternetConnection;
 import com.alaminkarno.kvpn.R;
 import com.alaminkarno.kvpn.SharedPreference;
 import com.alaminkarno.kvpn.databinding.FragmentMainBinding;
 import com.alaminkarno.kvpn.interfaces.ChangeServer;
 import com.alaminkarno.kvpn.model.Server;
+import com.bumptech.glide.Glide;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Objects;
 
 import de.blinkt.openvpn.OpenVpnApi;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.OpenVPNThread;
 import de.blinkt.openvpn.core.VpnStatus;
 
-import static android.app.Activity.RESULT_OK;
-
 public class MainFragment extends Fragment implements View.OnClickListener, ChangeServer {
 
     private Server server;
     private CheckInternetConnection connection;
 
-    private OpenVPNThread vpnThread = new OpenVPNThread();
-    private OpenVPNService vpnService = new OpenVPNService();
+    private final OpenVPNThread vpnThread = new OpenVPNThread();
+    private final OpenVPNService vpnService = new OpenVPNService();
     boolean vpnStart = false;
     private SharedPreference preference;
 
     private FragmentMainBinding binding;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
@@ -68,7 +68,7 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
      * Initialize all variable and object
      */
     private void initializeAll() {
-        preference = new SharedPreference(getContext());
+        preference = new SharedPreference(requireContext());
         server = preference.getServer();
 
         // Update current selected server icon
@@ -78,14 +78,14 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         binding.vpnBtn.setOnClickListener(this);
 
         // Checking is vpn already running or not
         isServiceRunning();
-        VpnStatus.initLogCache(getActivity().getCacheDir());
+        VpnStatus.initLogCache(requireActivity().getCacheDir());
     }
 
     /**
@@ -93,14 +93,12 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
      */
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.vpnBtn:
-                // Vpn is running, user would like to disconnect current connection.
-                if (vpnStart) {
-                    confirmDisconnect();
-                }else {
-                    prepareVpn();
-                }
+        if (v.getId() == R.id.vpnBtn) {// Vpn is running, user would like to disconnect current connection.
+            if (vpnStart) {
+                confirmDisconnect();
+            } else {
+                prepareVpn();
+            }
         }
     }
 
@@ -108,18 +106,12 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
      * Show show disconnect confirm dialog
      */
     public void confirmDisconnect(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage(getActivity().getString(R.string.connection_close_confirm));
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        builder.setMessage(requireActivity().getString(R.string.connection_close_confirm));
 
-        builder.setPositiveButton(getActivity().getString(R.string.yes), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                stopVpn();
-            }
-        });
-        builder.setNegativeButton(getActivity().getString(R.string.no), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                // User cancelled the dialog
-            }
+        builder.setPositiveButton(requireActivity().getString(R.string.yes), (dialog, id) -> stopVpn());
+        builder.setNegativeButton(requireActivity().getString(R.string.no), (dialog, id) -> {
+            // User cancelled the dialog
         });
 
         // Create the AlertDialog
@@ -163,7 +155,7 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
      */
     public boolean stopVpn() {
         try {
-            vpnThread.stop();
+            OpenVPNThread.stop();
 
             status("connect");
             vpnStart = false;
@@ -195,14 +187,14 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
      * Internet connection status.
      */
     public boolean getInternetStatus() {
-        return connection.netCheck(getContext());
+        return connection.netCheck(requireContext());
     }
 
     /**
      * Get service status
      */
     public void isServiceRunning() {
-        setStatus(vpnService.getStatus());
+        setStatus(OpenVPNService.getStatus());
     }
 
     /**
@@ -211,7 +203,7 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
     private void startVpn() {
         try {
             // .ovpn file
-            InputStream conf = getActivity().getAssets().open(server.getOvpn());
+            InputStream conf = requireActivity().getAssets().open(server.getOvpn());
             InputStreamReader isr = new InputStreamReader(conf);
             BufferedReader br = new BufferedReader(isr);
             String config = "";

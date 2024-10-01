@@ -5,8 +5,6 @@
 
 package de.blinkt.openvpn.api;
 
-import android.annotation.TargetApi;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -14,12 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.VpnService;
-import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -32,6 +25,7 @@ import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import de.blinkt.openvpn.R;
 import de.blinkt.openvpn.VpnProfile;
@@ -45,7 +39,6 @@ import de.blinkt.openvpn.core.VPNLaunchHelper;
 import de.blinkt.openvpn.core.VpnStatus;
 import de.blinkt.openvpn.core.VpnStatus.StateListener;
 
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
 public class ExternalOpenVPNService extends Service implements StateListener {
 
     private static final int SEND_TOALL = 0;
@@ -57,7 +50,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
     private ExternalAppDatabase mExtAppDb;
 
 
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
 
 
         @Override
@@ -74,14 +67,14 @@ public class ExternalOpenVPNService extends Service implements StateListener {
 
     };
 
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent != null && Intent.ACTION_UNINSTALL_PACKAGE.equals(intent.getAction())){
                 // Check if the running config is temporary and installed by the app being uninstalled
                 VpnProfile vp = ProfileManager.getLastConnectedVpn();
                 if (ProfileManager.isTempProfile()) {
-                    if(intent.getPackage().equals(vp.mProfileCreator)) {
+                    if(Objects.equals(intent.getPackage(), vp.mProfileCreator)) {
                         if (mService != null)
                             try {
                                 mService.stopVPN(false);
@@ -113,7 +106,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
     private final IOpenVPNAPIService.Stub mBinder = new IOpenVPNAPIService.Stub() {
 
         @Override
-        public List<APIVpnProfile> getProfiles() throws RemoteException {
+        public List<APIVpnProfile> getProfiles() {
             mExtAppDb.checkOpenVPNPermission(getPackageManager());
 
             ProfileManager pm = ProfileManager.getInstance(getBaseContext());
@@ -122,7 +115,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
 
             for (VpnProfile vp : pm.getProfiles()) {
                 if (!vp.profileDeleted)
-                    profiles.add(new APIVpnProfile(vp.getUUIDString(), vp.mName, vp.mUserEditable, vp.mProfileCreator));
+                    profiles.add(new APIVpnProfile(vp.getUUIDString(), vp.mName, vp.mUserEditable));
             }
 
             return profiles;
@@ -174,11 +167,6 @@ public class ExternalOpenVPNService extends Service implements StateListener {
 
                 vp.mProfileCreator = callingApp;
 
-                /*int needpw = vp.needUserPWInput(false);
-                if(needpw !=0)
-                    throw new RemoteException("The inline file would require user input: " + getString(needpw));
-                    */
-
                 ProfileManager.setTemporaryProfile(ExternalOpenVPNService.this, vp);
 
                 startProfile(vp);
@@ -190,13 +178,13 @@ public class ExternalOpenVPNService extends Service implements StateListener {
 
 
         @Override
-        public boolean addVPNProfile(String name, String config) throws RemoteException {
+        public boolean addVPNProfile(String name, String config) {
             return addNewVPNProfile(name, true, config) != null;
         }
 
 
         @Override
-        public APIVpnProfile addNewVPNProfile(String name, boolean userEditable, String config) throws RemoteException {
+        public APIVpnProfile addNewVPNProfile(String name, boolean userEditable, String config) {
             String callingPackage = mExtAppDb.checkOpenVPNPermission(getPackageManager());
 
             ConfigParser cp = new ConfigParser();
@@ -210,7 +198,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
                 pm.addProfile(vp);
                 pm.saveProfile(ExternalOpenVPNService.this, vp);
                 pm.saveProfileList(ExternalOpenVPNService.this);
-                return new APIVpnProfile(vp.getUUIDString(), vp.mName, vp.mUserEditable, vp.mProfileCreator);
+                return new APIVpnProfile(vp.getUUIDString(), vp.mName, vp.mUserEditable);
             } catch (IOException e) {
                 VpnStatus.logException(e);
                 return null;
@@ -221,7 +209,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
         }
 
         @Override
-        public void removeProfile(String profileUUID) throws RemoteException {
+        public void removeProfile(String profileUUID) {
             mExtAppDb.checkOpenVPNPermission(getPackageManager());
             ProfileManager pm = ProfileManager.getInstance(getBaseContext());
             VpnProfile vp = ProfileManager.get(getBaseContext(), profileUUID);
@@ -252,7 +240,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
         }
 
         @Override
-        public Intent prepareVPNService() throws RemoteException {
+        public Intent prepareVPNService() {
             mExtAppDb.checkOpenVPNPermission(getPackageManager());
 
             if (VpnService.prepare(ExternalOpenVPNService.this) == null)
@@ -277,8 +265,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
         }
 
         @Override
-        public void unregisterStatusCallback(IOpenVPNStatusCallback cb)
-                throws RemoteException {
+        public void unregisterStatusCallback(IOpenVPNStatusCallback cb) {
             mExtAppDb.checkOpenVPNPermission(getPackageManager());
 
             if (cb != null)
@@ -327,7 +314,7 @@ public class ExternalOpenVPNService extends Service implements StateListener {
 
 
 
-    class UpdateMessage {
+    static class UpdateMessage {
         public String state;
         public String logmessage;
         public ConnectionStatus level;
@@ -370,26 +357,24 @@ public class ExternalOpenVPNService extends Service implements StateListener {
         public void handleMessage(Message msg) {
 
             RemoteCallbackList<IOpenVPNStatusCallback> callbacks;
-            switch (msg.what) {
-                case SEND_TOALL:
-                    if (service == null || service.get() == null)
-                        return;
+            if (msg.what == SEND_TOALL) {
+                if (service == null || service.get() == null)
+                    return;
 
-                    callbacks = service.get().mCallbacks;
+                callbacks = service.get().mCallbacks;
 
 
-                    // Broadcast to all clients the new value.
-                    final int N = callbacks.beginBroadcast();
-                    for (int i = 0; i < N; i++) {
-                        try {
-                            sendUpdate(callbacks.getBroadcastItem(i), (UpdateMessage) msg.obj);
-                        } catch (RemoteException e) {
-                            // The RemoteCallbackList will take care of removing
-                            // the dead object for us.
-                        }
+                // Broadcast to all clients the new value.
+                final int N = callbacks.beginBroadcast();
+                for (int i = 0; i < N; i++) {
+                    try {
+                        sendUpdate(callbacks.getBroadcastItem(i), (UpdateMessage) msg.obj);
+                    } catch (RemoteException e) {
+                        // The RemoteCallbackList will take care of removing
+                        // the dead object for us.
                     }
-                    callbacks.finishBroadcast();
-                    break;
+                }
+                callbacks.finishBroadcast();
             }
         }
 

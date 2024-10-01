@@ -22,7 +22,7 @@ public class APIVpnProfile implements Parcelable {
         //mProfileCreator = in.readString();
     }
 
-    public APIVpnProfile(String uuidString, String name, boolean userEditable, String profileCreator) {
+    public APIVpnProfile(String uuidString, String name, boolean userEditable) {
         mUUID = uuidString;
         mName = name;
         mUserEditable = userEditable;

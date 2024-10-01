@@ -6,22 +6,30 @@
 package de.blinkt.openvpn.api;
 
 import android.annotation.TargetApi;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.RestrictionsManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import de.blinkt.openvpn.VpnProfile;
-import de.blinkt.openvpn.core.ConfigParser;
-import de.blinkt.openvpn.core.Connection;
-import de.blinkt.openvpn.core.ProfileManager;
-import de.blinkt.openvpn.core.VpnStatus;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import java.util.Vector;
+
+import de.blinkt.openvpn.VpnProfile;
+import de.blinkt.openvpn.core.ConfigParser;
+import de.blinkt.openvpn.core.ProfileManager;
+import de.blinkt.openvpn.core.VpnStatus;
 
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -30,7 +38,6 @@ public class AppRestrictions {
     final static int CONFIG_VERSION = 1;
     static boolean alreadyChecked = false;
     private static AppRestrictions mInstance;
-    private RestrictionsManager mRestrictionsMgr;
     private BroadcastReceiver mRestrictionsReceiver;
 
     private AppRestrictions(Context c) {
@@ -63,7 +70,7 @@ public class AppRestrictions {
         MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA1");
-            byte utf8_bytes[] = config.getBytes();
+            byte[] utf8_bytes = config.getBytes();
             digest.update(utf8_bytes, 0, utf8_bytes.length);
             return new BigInteger(1, digest.digest()).toString(16);
         } catch (NoSuchAlgorithmException e) {
@@ -73,7 +80,7 @@ public class AppRestrictions {
     }
 
     private void applyRestrictions(Context c) {
-        mRestrictionsMgr = (RestrictionsManager) c.getSystemService(Context.RESTRICTIONS_SERVICE);
+        RestrictionsManager mRestrictionsMgr = (RestrictionsManager) c.getSystemService(Context.RESTRICTIONS_SERVICE);
         if (mRestrictionsMgr == null)
             return;
         Bundle restrictions = mRestrictionsMgr.getApplicationRestrictions();
@@ -125,6 +132,7 @@ public class AppRestrictions {
 
             if (vpnProfile != null) {
                 // Profile exists, check if need to update it
+                assert ovpnHash != null;
                 if (ovpnHash.equals(vpnProfile.importedProfileHash))
                     // not modified skip to next profile
                     continue;
@@ -150,19 +158,19 @@ public class AppRestrictions {
     }
 
     private String prepare(String config) {
-        String newLine = System.getProperty("line.separator");
+        String newLine = System.lineSeparator();
         if (!config.contains(newLine)&& !config.contains(" ")) {
             try {
                 byte[] decoded = android.util.Base64.decode(config.getBytes(), android.util.Base64.DEFAULT);
                 config  = new String(decoded);
                 return config; 
             } catch(IllegalArgumentException e) {
-               
+               e.printStackTrace();
             }
         }
         return config;
-    };
-    
+    }
+
     private void addProfile(Context c, String config, String uuid, String name, VpnProfile vpnProfile) {
         config  = prepare(config);
         ConfigParser cp = new ConfigParser();

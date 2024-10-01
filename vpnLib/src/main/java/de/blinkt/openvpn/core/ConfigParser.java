@@ -124,10 +124,10 @@ public class ConfigParser {
             "http-proxy-user-pass",
             "explicit-exit-notify",
     };
-    private HashSet<String>  connectionOptionsSet = new HashSet<>(Arrays.asList(connectionOptions));
+    private final HashSet<String>  connectionOptionsSet = new HashSet<>(Arrays.asList(connectionOptions));
 
-    private HashMap<String, Vector<Vector<String>>> options = new HashMap<>();
-    private HashMap<String, Vector<String>> meta = new HashMap<String, Vector<String>>();
+    private final HashMap<String, Vector<Vector<String>>> options = new HashMap<>();
+    private final HashMap<String, Vector<String>> meta = new HashMap<>();
     private String auth_user_pass_file;
 
     static public void useEmbbedUserAuth(VpnProfile np, String inlinedata) {
@@ -182,7 +182,7 @@ public class ConfigParser {
                 }
                 Vector<String> args = parseline(line);
 
-                if (args.size() == 0)
+                if (args.isEmpty())
                     continue;
 
 
@@ -196,9 +196,9 @@ public class ConfigParser {
                     optionname = optionAliases.get(optionname);
 
                 if (!options.containsKey(optionname)) {
-                    options.put(optionname, new Vector<Vector<String>>());
+                    options.put(optionname, new Vector<>());
                 }
-                options.get(optionname).add(args);
+                Objects.requireNonNull(options.get(optionname)).add(args);
             }
         } catch (java.lang.OutOfMemoryError memoryError) {
             throw new ConfigParseError("File too large to parse: " + memoryError.getLocalizedMessage());
@@ -208,7 +208,7 @@ public class ConfigParser {
     private Vector<String> parsemeta(String line) {
         String meta = line.split("#\\sOVPN_ACCESS_SERVER_", 2)[1];
         String[] parts = meta.split("=", 2);
-        Vector<String> rval = new Vector<String>();
+        Vector<String> rval = new Vector<>();
         Collections.addAll(rval, parts);
         return rval;
 
@@ -219,7 +219,7 @@ public class ConfigParser {
         // CHeck for <foo>
         if (arg0.startsWith("<") && arg0.endsWith(">")) {
             String argname = arg0.substring(1, arg0.length() - 1);
-            String inlinefile = VpnProfile.INLINE_TAG;
+            StringBuilder inlinefile = new StringBuilder(VpnProfile.INLINE_TAG);
 
             String endtag = String.format("</%s>", argname);
             do {
@@ -230,17 +230,17 @@ public class ConfigParser {
                 if (line.trim().equals(endtag))
                     break;
                 else {
-                    inlinefile += line;
-                    inlinefile += "\n";
+                    inlinefile.append(line);
+                    inlinefile.append("\n");
                 }
             } while (true);
 
-            if (inlinefile.endsWith("\n"))
-                inlinefile = inlinefile.substring(0, inlinefile.length() - 1);
+            if (inlinefile.toString().endsWith("\n"))
+                inlinefile = new StringBuilder(inlinefile.substring(0, inlinefile.length() - 1));
 
             args.clear();
             args.add(argname);
-            args.add(inlinefile);
+            args.add(inlinefile.toString());
         }
 
     }
@@ -258,9 +258,9 @@ public class ConfigParser {
 
     // adapted openvpn's parse function to java
     private Vector<String> parseline(String line) throws ConfigParseError {
-        Vector<String> parameters = new Vector<String>();
+        Vector<String> parameters = new Vector<>();
 
-        if (line.length() == 0)
+        if (line.isEmpty())
             return parameters;
 
 
@@ -269,7 +269,7 @@ public class ConfigParser {
         char out = 0;
 
         int pos = 0;
-        String currentarg = "";
+        StringBuilder currentarg = new StringBuilder();
 
         do {
             // Emulate the c parsing ...
@@ -315,8 +315,8 @@ public class ConfigParser {
                 if (state == linestate.done) {
                     /* ASSERT (parm_len > 0); */
                     state = linestate.initial;
-                    parameters.add(currentarg);
-                    currentarg = "";
+                    parameters.add(currentarg.toString());
+                    currentarg = new StringBuilder();
                     out = 0;
                 }
 
@@ -330,7 +330,7 @@ public class ConfigParser {
 
             /* store parameter character */
             if (out != 0) {
-                currentarg += out;
+                currentarg.append(out);
             }
         } while (pos++ < line.length());
 
@@ -364,8 +364,8 @@ public class ConfigParser {
 
         Vector<Vector<String>> routes = getAllOption("route", 1, 4);
         if (routes != null) {
-            String routeopt = "";
-            String routeExcluded = "";
+            StringBuilder routeopt = new StringBuilder();
+            StringBuilder routeExcluded = new StringBuilder();
             for (Vector<String> route : routes) {
                 String netmask = "255.255.255.255";
                 String gateway = "vpn_gateway";
@@ -379,9 +379,9 @@ public class ConfigParser {
                 try {
                     CIDRIP cidr = new CIDRIP(net, netmask);
                     if (gateway.equals("net_gateway"))
-                        routeExcluded += cidr.toString() + " ";
+                        routeExcluded.append(cidr).append(" ");
                     else
-                        routeopt += cidr.toString() + " ";
+                        routeopt.append(cidr).append(" ");
                 } catch (ArrayIndexOutOfBoundsException aioob) {
                     throw new ConfigParseError("Could not parse netmask of route " + netmask);
                 } catch (NumberFormatException ne) {
@@ -391,18 +391,18 @@ public class ConfigParser {
                 }
 
             }
-            np.mCustomRoutes = routeopt;
-            np.mExcludedRoutes = routeExcluded;
+            np.mCustomRoutes = routeopt.toString();
+            np.mExcludedRoutes = routeExcluded.toString();
         }
 
         Vector<Vector<String>> routesV6 = getAllOption("route-ipv6", 1, 4);
         if (routesV6 != null) {
-            String customIPv6Routes = "";
+            StringBuilder customIPv6Routes = new StringBuilder();
             for (Vector<String> route : routesV6) {
-                customIPv6Routes += route.get(1) + " ";
+                customIPv6Routes.append(route.get(1)).append(" ");
             }
 
-            np.mCustomRoutesv6 = customIPv6Routes;
+            np.mCustomRoutesv6 = customIPv6Routes.toString();
         }
 
         Vector<String> routeNoPull = getOption("route-nopull", 0, 0);
@@ -674,7 +674,7 @@ public class ConfigParser {
         if (crlfile != null) {
             // If the 'dir' parameter is present just add it as custom option ..
             if (crlfile.size() == 3 && crlfile.get(2).equals("dir"))
-                np.mCustomConfigOptions += join(" ", crlfile) + "\n";
+                np.mCustomConfigOptions += join(crlfile) + "\n";
             else
                 // Save the filename for the config converter to add later
                 np.mCrlFilename = crlfile.get(1);
@@ -742,11 +742,11 @@ public class ConfigParser {
         return np;
     }
 
-    private String join(String s, Vector<String> str) {
+    private String join(Vector<String> str) {
         if (Build.VERSION.SDK_INT > 26)
-            return String.join(s, str);
+            return String.join(" ", str);
         else
-            return TextUtils.join(s, str);
+            return TextUtils.join(" ", str);
     }
 
     private Pair<Connection, Connection[]> parseConnection(String connection, Connection defaultValues) throws IOException, ConfigParseError {
@@ -757,9 +757,7 @@ public class ConfigParser {
         StringReader reader = new StringReader(connection.substring(VpnProfile.INLINE_TAG.length()));
         connectionParser.parseConfig(reader);
 
-        Pair<Connection, Connection[]> conn = connectionParser.parseConnectionOptions(defaultValues);
-
-        return conn;
+        return connectionParser.parseConnectionOptions(defaultValues);
     }
 
     private Pair<Connection, Connection[]> parseConnectionOptions(Connection connDefault) throws ConfigParseError {

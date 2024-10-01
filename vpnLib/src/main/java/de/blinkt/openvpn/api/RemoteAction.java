@@ -24,10 +24,9 @@ import de.blinkt.openvpn.core.ProfileManager;
 public class RemoteAction extends Activity {
 
     public static final String EXTRA_NAME = "de.blinkt.openvpn.api.profileName";
-    private ExternalAppDatabase mExtAppDb;
     private boolean mDoDisconnect;
     private IOpenVPNServiceInternal mService;
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
@@ -51,7 +50,7 @@ public class RemoteAction extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mExtAppDb = new ExternalAppDatabase(this);
+        ExternalAppDatabase mExtAppDb = new ExternalAppDatabase(this);
     }
 
     @Override
@@ -74,6 +73,7 @@ public class RemoteAction extends Activity {
         Intent intent = getIntent();
         setIntent(null);
         ComponentName component = intent.getComponent();
+        assert component != null;
         if (component.getShortClassName().equals(".api.DisconnectVPN")) {
             mService.stopVPN(false);
         } else if (component.getShortClassName().equals(".api.ConnectVPN")) {
