@@ -240,32 +240,33 @@ public class MainFragment extends Fragment implements View.OnClickListener, Chan
      * @param connectionState
      */
     public void setStatus(String connectionState) {
-        if (connectionState!= null)
-        switch (connectionState) {
-            case "DISCONNECTED":
-                status("connect");
-                vpnStart = false;
-                vpnService.setDefaultStatus();
-                binding.logTv.setText("");
-                break;
-            case "CONNECTED":
-                vpnStart = true;// it will use after restart this activity
-                status("connected");
-                binding.logTv.setText("");
-                break;
-            case "WAIT":
-                binding.logTv.setText("waiting for server connection!!");
-                break;
-            case "AUTH":
-                binding.logTv.setText("server authenticating!!");
-                break;
-            case "RECONNECTING":
-                status("connecting");
-                binding.logTv.setText("Reconnecting...");
-                break;
-            case "NONETWORK":
-                binding.logTv.setText("No network connection");
-                break;
+        if (connectionState != null) {
+            switch (connectionState) {
+                case "DISCONNECTED":
+                    status("connect");
+                    vpnStart = false;
+                    OpenVPNService.setDefaultStatus();
+                    binding.logTv.setText("");
+                    break;
+                case "CONNECTED":
+                    vpnStart = true;// it will use after restart this activity
+                    status("connected");
+                    binding.logTv.setText("");
+                    break;
+                case "WAIT":
+                    binding.logTv.setText("waiting for server connection!!");
+                    break;
+                case "AUTH":
+                    binding.logTv.setText("server authenticating!!");
+                    break;
+                case "RECONNECTING":
+                    status("connecting");
+                    binding.logTv.setText("Reconnecting...");
+                    break;
+                case "NONETWORK":
+                    binding.logTv.setText("No network connection");
+                    break;
+            }
         }
 
     }

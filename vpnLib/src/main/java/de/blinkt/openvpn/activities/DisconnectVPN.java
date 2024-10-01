@@ -27,7 +27,7 @@ import de.blinkt.openvpn.core.VpnStatus;
  */
 public class DisconnectVPN extends Activity implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
     private IOpenVPNServiceInternal mService;
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
 
 
 

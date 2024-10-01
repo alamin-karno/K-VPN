@@ -5,6 +5,8 @@
 
 package de.blinkt.openvpn.core;
 
+import androidx.annotation.NonNull;
+
 import java.util.Locale;
 
 class CIDRIP {
@@ -22,7 +24,7 @@ class CIDRIP {
         long netmask = getInt(mask);
 
         // Add 33. bit to ensure the loop terminates
-        netmask += 1l << 32;
+        netmask += 1L << 32;
 
         int lenZeros = 0;
         while ((netmask & 0x1) == 0) {
@@ -31,7 +33,7 @@ class CIDRIP {
         }
         int len;
         // Check if rest of netmask is only 1s
-        if (netmask != (0x1ffffffffl >> lenZeros)) {
+        if (netmask != (0x1ffffffffL >> lenZeros)) {
             // Asume no CIDR, set /32
             len = 32;
         } else {
@@ -45,6 +47,7 @@ class CIDRIP {
         mIp = address;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return String.format(Locale.ENGLISH, "%s/%d", mIp, len);
@@ -55,7 +58,7 @@ class CIDRIP {
 
         long newip = ip & (0xffffffffL << (32 - len));
         if (newip != ip) {
-            mIp = String.format(Locale.US,"%d.%d.%d.%d", (newip & 0xff000000) >> 24, (newip & 0xff0000) >> 16, (newip & 0xff00) >> 8, newip & 0xff);
+            mIp = String.format(Locale.US,"%d.%d.%d.%d", (newip & 0xff000000L) >> 24, (newip & 0xff0000) >> 16, (newip & 0xff00) >> 8, newip & 0xff);
             return true;
         } else {
             return false;
@@ -68,8 +71,8 @@ class CIDRIP {
         long ip = 0;
 
         ip += Long.parseLong(ipt[0]) << 24;
-        ip += Integer.parseInt(ipt[1]) << 16;
-        ip += Integer.parseInt(ipt[2]) << 8;
+        ip += (long) Integer.parseInt(ipt[1]) << 16;
+        ip += (long) Integer.parseInt(ipt[2]) << 8;
         ip += Integer.parseInt(ipt[3]);
 
         return ip;
